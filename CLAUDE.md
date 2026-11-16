@@ -62,7 +62,14 @@ The Godot project is the repo root.
 - Undamaged units of a type share a mesh; a unit gets its own voxel grid when first hit.
 - Remeshes are queued with a per-frame budget on `WorkerThreadPool`; debris is pooled
   and capped.
-- Art is authored in MagicaVoxel (`.vox`, read by our own importer).
+- Art is authored in MagicaVoxel (`.vox`, read at runtime by `VoxReader`). Export presets
+  must include `*.vox` under "Filters to export non-resource files" until there's an
+  import plugin.
+- Code: `Scripts/Voxel/` — `VoxelGrid` (data), `VoxReader`, `VoxelMesher` (exterior faces,
+  vertex colours), `VoxelBody` (shared mesh, raycast, carve, support check, crumble),
+  `VoxelDebris` (pooled MultiMesh). `Scripts/Tools/voxel_test_gun.gd` is a test harness.
+- Voxel materials need `use_vertex_color` on (`Materials/voxel.tres`).
+- Test models come from `Tools/make_test_vox.py` (placeholders until Mark's art).
 
 ## Testing (headless)
 
@@ -82,6 +89,8 @@ xvfb-run -a -s "-screen 0 1920x1080x24" /tmp/godot/Godot_v4.7.1-stable_linux.x86
   `root.get_node("ViewService")`, `call()`, `get()`, `load()`.
 - A script error leaves Godot hanging without quitting; run with a `timeout`, and add
   `--verbose` to find the error.
-- Headless runs use the Compatibility renderer, which looks brighter and more saturated
-  than Forward+ on Mark's PC. Judge layout and shape from screenshots, not exact colour.
+- For screenshots that match Mark's PC, render Forward+ on software Vulkan: install
+  `mesa-vulkan-drivers` (lavapipe), then use `--rendering-driver vulkan
+  --rendering-method forward_plus` instead of `--rendering-driver opengl3`. It's slower
+  per frame. opengl3 gives the Compatibility (browser) look, brighter and more saturated.
 - Look at screenshots before saying visual work is done.

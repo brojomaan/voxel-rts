@@ -2,9 +2,10 @@
 
 [ext_resource type="PackedScene" uid="uid://d3ektalyy8cqu" path="res://CameraRig.tscn" id="1_rig"]
 [ext_resource type="Material" path="res://Materials/ground.tres" id="2_ground"]
-[ext_resource type="Material" path="res://Materials/concrete.tres" id="3_concrete"]
-[ext_resource type="Material" path="res://Materials/team_blue.tres" id="4_blue"]
-[ext_resource type="Material" path="res://Materials/team_red.tres" id="5_red"]
+[ext_resource type="Material" path="res://Materials/voxel.tres" id="3_voxel"]
+[ext_resource type="Script" path="res://Scripts/Voxel/voxel_body.gd" id="4_body"]
+[ext_resource type="Script" path="res://Scripts/Voxel/voxel_debris.gd" id="5_debris"]
+[ext_resource type="Script" path="res://Scripts/Tools/voxel_test_gun.gd" id="6_gun"]
 
 [sub_resource type="Environment" id="Environment_day"]
 background_mode = 1
@@ -15,18 +16,6 @@ ambient_light_energy = 0.45
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(64, 64)
-
-[sub_resource type="BoxMesh" id="BoxMesh_building"]
-size = Vector3(4, 2.5, 3)
-
-[sub_resource type="BoxMesh" id="BoxMesh_hull"]
-size = Vector3(1.4, 0.6, 2)
-
-[sub_resource type="BoxMesh" id="BoxMesh_turret"]
-size = Vector3(0.9, 0.45, 0.9)
-
-[sub_resource type="BoxMesh" id="BoxMesh_barrel"]
-size = Vector3(0.18, 0.18, 1.1)
 
 [node name="World" type="Node3D"]
 
@@ -46,45 +35,40 @@ directional_shadow_mode = 1
 mesh = SubResource("PlaneMesh_ground")
 surface_material_override/0 = ExtResource("2_ground")
 
+[node name="VoxelDebris" type="MultiMeshInstance3D" parent="."]
+script = ExtResource("5_debris")
+material = ExtResource("3_voxel")
+
+[node name="VoxelTestGun" type="Node" parent="."]
+script = ExtResource("6_gun")
+
 [node name="TestProps" type="Node3D" parent="."]
 
-[node name="Building" type="MeshInstance3D" parent="TestProps"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.25, -2)
-mesh = SubResource("BoxMesh_building")
-surface_material_override/0 = ExtResource("3_concrete")
+[node name="Building" type="Node3D" parent="TestProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -2)
+script = ExtResource("4_body")
+vox_path = "res://Art/Voxel/test_building.vox"
+material = ExtResource("3_voxel")
+check_support = true
+log_timings = true
 
 [node name="BlueTank" type="Node3D" parent="TestProps"]
 transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 1.5, 0, 1)
-
-[node name="Hull" type="MeshInstance3D" parent="TestProps/BlueTank"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
-mesh = SubResource("BoxMesh_hull")
-surface_material_override/0 = ExtResource("4_blue")
-
-[node name="Turret" type="MeshInstance3D" parent="TestProps/BlueTank"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.825, 0)
-mesh = SubResource("BoxMesh_turret")
-surface_material_override/0 = ExtResource("4_blue")
-
-[node name="Barrel" type="MeshInstance3D" parent="TestProps/BlueTank/Turret"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.85)
-mesh = SubResource("BoxMesh_barrel")
-surface_material_override/0 = ExtResource("4_blue")
+script = ExtResource("4_body")
+vox_path = "res://Art/Voxel/test_tank_blue.vox"
+material = ExtResource("3_voxel")
+log_timings = true
 
 [node name="RedTank" type="Node3D" parent="TestProps"]
 transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 4, 0, -3)
+script = ExtResource("4_body")
+vox_path = "res://Art/Voxel/test_tank_red.vox"
+material = ExtResource("3_voxel")
+log_timings = true
 
-[node name="Hull" type="MeshInstance3D" parent="TestProps/RedTank"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
-mesh = SubResource("BoxMesh_hull")
-surface_material_override/0 = ExtResource("5_red")
-
-[node name="Turret" type="MeshInstance3D" parent="TestProps/RedTank"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.825, 0)
-mesh = SubResource("BoxMesh_turret")
-surface_material_override/0 = ExtResource("5_red")
-
-[node name="Barrel" type="MeshInstance3D" parent="TestProps/RedTank/Turret"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.85)
-mesh = SubResource("BoxMesh_barrel")
-surface_material_override/0 = ExtResource("5_red")
+[node name="RedTank2" type="Node3D" parent="TestProps"]
+transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 5.5, 0, -1)
+script = ExtResource("4_body")
+vox_path = "res://Art/Voxel/test_tank_red.vox"
+material = ExtResource("3_voxel")
+log_timings = true

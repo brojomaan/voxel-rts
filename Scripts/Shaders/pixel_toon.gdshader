@@ -16,6 +16,8 @@ global uniform vec2 cloud_offset;
 
 uniform vec4 albedo : source_color = vec4(1.0);
 uniform sampler2D albedo_texture : source_color, filter_nearest, hint_default_white;
+// Voxel models colour each face per vertex, and debris per instance (sRGB).
+uniform bool use_vertex_color = false;
 
 group_uniforms Emission;
 // Glows regardless of lighting (fairy lights, windows, the star). Black = off.
@@ -46,8 +48,21 @@ float cloud_shade(vec3 pos) {
 }
 
 
+vec3 srgb_to_linear(vec3 c) {
+	return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(vec3(0.04045), c));
+}
+
+
 void fragment() {
 	vec3 base = albedo.rgb * texture(albedo_texture, UV).rgb;
+	if (use_vertex_color) {
+#if CURRENT_RENDERER == RENDERER_COMPATIBILITY
+		// Compatibility already turns vertex colours linear; converting again darkens them.
+		base *= COLOR.rgb;
+#else
+		base *= srgb_to_linear(COLOR.rgb);
+#endif
+	}
 	ALBEDO = base;
 
 	vec3 glow = emission.rgb * texture(emission_texture, UV).rgb;
