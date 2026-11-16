@@ -3,16 +3,10 @@
 [ext_resource type="PackedScene" uid="uid://d3ektalyy8cqu" path="res://CameraRig.tscn" id="1_rig"]
 [ext_resource type="Material" path="res://Materials/ground.tres" id="2_ground"]
 [ext_resource type="Material" path="res://Materials/voxel.tres" id="3_voxel"]
-<<<<<<< Updated upstream
-[ext_resource type="Script" path="res://Scripts/Voxel/voxel_body.gd" id="4_body"]
-[ext_resource type="Script" path="res://Scripts/Voxel/voxel_debris.gd" id="5_debris"]
-[ext_resource type="Script" path="res://Scripts/Tools/voxel_test_gun.gd" id="6_gun"]
-[ext_resource type="Material" path="res://Materials/voxel_debris.tres" id="7_debris_mat"]
-=======
 [ext_resource type="Script" uid="uid://c6l4j06q6ofsq" path="res://Scripts/Voxel/voxel_body.gd" id="4_body"]
 [ext_resource type="Script" uid="uid://df3hda52k2ju1" path="res://Scripts/Voxel/voxel_debris.gd" id="5_debris"]
 [ext_resource type="Script" uid="uid://31cnpbd4hn01" path="res://Scripts/Tools/voxel_test_gun.gd" id="6_gun"]
->>>>>>> Stashed changes
+[ext_resource type="Material" path="res://Materials/voxel_debris.tres" id="7_debris_mat"]
 
 [sub_resource type="Environment" id="Environment_day"]
 background_mode = 1
