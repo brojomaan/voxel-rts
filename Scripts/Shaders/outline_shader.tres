@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://Scripts/Shaders/outline.gdshader" id="1_outline"]
+
+[resource]
+render_priority = -128
+shader = ExtResource("1_outline")
+shader_parameter/outline_enabled = true
+shader_parameter/depth_threshold = 0.2
+shader_parameter/outline_strength = 0.86
+shader_parameter/highlight_enabled = true
+shader_parameter/normal_threshold = 0.2
+shader_parameter/highlight_strength = 0.75
+shader_parameter/normal_bias = Vector3(1, 1, 1)

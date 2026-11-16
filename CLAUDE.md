@@ -1,9 +1,15 @@
-# Two Billion Presents (TinyTapTowns)
+# Voxel RTS (working title)
 
-A Christmas incremental city builder in **Godot 4.7.1** (GDScript), by Mark Silvester /
-Pickle Plum Studios. The project is in `tap-towns/`. Elves gather, carry and craft in a
-3D town drawn as pixel art; the goal is two billion presents by Christmas (the demo
-stops at 1 million). Releasing on Steam and itch.io.
+A Command & Conquer 1 / Red Alert 2-style RTS with light incremental elements, in
+**Godot 4.7.1** (GDScript), by Mark Silvester / Pickle Plum Studios. Built on the pixel
+view from Two Billion Presents. Everything on the battlefield is voxel: tanks and
+buildings take visible damage where they're hit and crumble to dust when destroyed.
+RTS 8/10, incremental 2/10: clicking buildings and units speeds them up.
+
+The design lives in the GDD (a Claude Doc): "Voxel RTS Incremental — GDD",
+https://claude.ai/artifact/XBsbeS5MuWrBLZzDXPEo2B. Check it before design work.
+
+The Godot project is the repo root.
 
 ## How we work
 
@@ -11,51 +17,60 @@ stops at 1 million). Releasing on Steam and itch.io.
   in parallel and pushes often.
 - Make the change in the repo, test it headless, then commit and push to `main` while
   Mark playtests. Small, focused commits with a message that says what changed and why.
-- **Never touch `UI/Mock/`**: those are Mark's mock-ups. Don't overwrite his art or scenes
-  wholesale; edit only the nodes a change needs.
+- Don't overwrite Mark's art or scenes wholesale; edit only the nodes a change needs.
 - If Mark says "no need to do anything, just so you're aware", don't act.
 - Mark understands the code and likes to know *why*: explain design choices briefly,
   flag trade-offs, and say when something was left out or is a guess.
+- Work in small, testable steps. No over-engineering.
 
 ## GDScript style
 
 - **Explicit types everywhere**, never `:=`: `var speed: float = 1.3`,
-  `for elf: Elf in elves:`, `func get_cost() -> int:`. (The project warns on untyped and
-  inferred declarations.)
+  `for unit: Unit in units:`, `func get_cost() -> int:`.
 - Doc comments (`##`) on classes and exported settings, written plainly, saying what
   it's for and any gotcha. Comments explain why, not what.
-- Architecture: **services** (autoloads in `Scripts/Services/`, e.g. `ResourceService`,
-  `TechService`, `TutorialService`), **components** (`Scripts/Components/`, one job each,
-  found by type), **bases** (`Scripts/Bases/`, e.g. `BuildingBase`). Input goes through
-  `InteractionService` / `GamepadService`, not scattered `_input`s.
-- **Data lives in resources** (`.tres`) so Mark can tune in the Inspector: buildings
-  (`Buildings/BuildingData`, `BuildingOptions`), upgrades, the tech tree, the tutorial
-  (`Levels/tutorial.tres`), credits (`UI/credits.tres`), achievements
-  (`Achievements/achievements.tres`). Prefer adding a field to a resource over a
-  hard-coded number.
-- Player-facing text: short, friendly, British English, straight quotes (the pixel fonts
-  have no curly quotes).
+- Architecture: **services** (autoloads in `Scripts/Services/`), **components**
+  (`Scripts/Components/`, one job each, found by type), **bases** (`Scripts/Bases/`).
+  Input goes through a dedicated input service, not scattered `_input`s (the camera rig
+  is the current exception, carried over from Two Billion Presents).
+- **Data lives in resources** (`.tres`) so Mark can tune in the Inspector. Prefer adding
+  a field to a resource over a hard-coded number.
+- Player-facing text: short, British English, straight quotes.
 
-## UI
+## Pixel view (rendering)
 
-- HUD is pixel UI on `PixelCanvas` layers (whole-number scaling, about 480x270 UI pixels
-  at Large on 1080p). Sizes are in UI pixels. The title screen is always Large;
-  in-game follows the UI Size setting (Medium default).
-- Colours: `UiColors` (TEXT, GOLD, GOOD, BAD, DIM). Icons: `UiIcons` (16px cells on
-  `UI/UI_Sheet_01.png`; upgrades use rows 5 to 8 via `icon_cell`).
-- Tooltips: `UiTooltip.attach(control, provider)`; the provider returns
-  `{title, value, value_color, rows: [{icon, text, color}], footer}`. Rows don't wrap,
-  footers do.
-- Pop-ups extend `PixelPopup`; Tinsel (the tutorial elf) is `TinselPopup`.
-- Progress bars are `CandyBar` (candy cane for production, wood stripes for building).
+- `game.tscn` (main scene) → `PixelView` renders `Scenes/World.tscn` into a low-res
+  `SubViewport` and upscales it with nearest filtering. HUD goes outside it, at full res.
+- `PixelView.pixel_scale` = screen pixels per world pixel (4 at 1080p = 480x270). The
+  GDD wants to test 2x/3x/4x for voxel detail.
+- `PixelSnapCamera` snaps to the low-res grid and hands the leftover sub-pixel to the
+  display, so panning is smooth without crawling pixels. `CameraRig` pans/zooms in
+  pixel-perfect steps (`zoom_levels` = low-res pixels per world unit).
+- Moving objects get a `PixelSnapComponent` so they step a clean pixel at a time.
+- **`ViewService`** (autoload): the world camera, mouse position in world-view pixels,
+  and world-to-screen. Raycasts must use `ViewService.get_camera()` and
+  `ViewService.get_mouse_position()`, not the root viewport's.
+- All 3D materials use `Scripts/Shaders/pixel_toon.gdshader` (banded lighting; band count
+  and ramp are project Shader Globals). Outlines are a full-screen pass on the camera
+  (`outline_shader.tres`); creases need Forward+, the browser build gets outlines only.
+- Basic team/ground materials are in `Materials/`.
+
+## Voxel plan (from the GDD)
+
+- HP drives gameplay; voxels are visual only.
+- Build only exterior faces; one mesh per object (or per part: hull, turret).
+- Undamaged units of a type share a mesh; a unit gets its own voxel grid when first hit.
+- Remeshes are queued with a per-frame budget on `WorkerThreadPool`; debris is pooled
+  and capped.
+- Art is authored in MagicaVoxel (`.vox`, read by our own importer).
 
 ## Testing (headless)
 
-Godot 4.7.1 Linux build at `/tmp/godot/Godot_v4.7.1-stable_linux.x86_64` (download it if
-missing). From `tap-towns/`:
+Godot 4.7.1 Linux build at `/tmp/godot/Godot_v4.7.1-stable_linux.x86_64` (download it from
+the GitHub release if missing). From the repo root:
 
 ```
-# after adding a class_name or new PNGs
+# after adding a class_name or new assets
 /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 --headless --import
 # run a test script (extends SceneTree) with rendering, for screenshots
 xvfb-run -a -s "-screen 0 1920x1080x24" /tmp/godot/Godot_v4.7.1-stable_linux.x86_64 \
@@ -64,20 +79,9 @@ xvfb-run -a -s "-screen 0 1920x1080x24" /tmp/godot/Godot_v4.7.1-stable_linux.x86
 
 - Test scripts are named `zz_*.gd` and **deleted before committing**.
 - They mustn't name autoload-dependent classes at compile time: use
-  `root.get_node("ResourceService")`, `call()`, `get()`, `load()`.
+  `root.get_node("ViewService")`, `call()`, `get()`, `load()`.
 - A script error leaves Godot hanging without quitting; run with a `timeout`, and add
   `--verbose` to find the error.
-- The outline shader is Forward+ only, so it errors on opengl3; that's expected.
-- Load `res://game.tscn` for the game; `ResourceService.cheat_set(id, amount)` sets stock.
-- Look at screenshots before saying UI work is done.
-
-## Handy tools and notes
-
-- `Tools/icon_renderer.tscn`: renders building pictures and portraits from the 3D
-  models ("Render Icons"). Re-run after new or changed buildings.
-- `Tools/achievement_icon_maker.tscn`: 64x64 Steam achievement icons plus locked copies.
-- GIF recorder (`GifRecorder`): F9, Ctrl+F9 (with UI), Shift+F9 (timelapse); itch-sized.
-- Links (Steam, feedback form, Discord) are in `Scripts/Services/game_links.gd`; empty
-  links hide their buttons in release builds.
-- Demo vs full game: `GameService.is_demo()`. Achievements are off in the demo.
-- Design notes: `TUNING.md` (balance), `UPGRADE_ICONS.md`, `ACHIEVEMENTS.md`.
+- Headless runs use the Compatibility renderer, which looks brighter and more saturated
+  than Forward+ on Mark's PC. Judge layout and shape from screenshots, not exact colour.
+- Look at screenshots before saying visual work is done.

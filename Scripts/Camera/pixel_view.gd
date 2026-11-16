@@ -70,7 +70,7 @@ func _apply_web_grade() -> void:
 	display.material = material
 
 
-func exit_tree() -> void:
+func _exit_tree() -> void:
 	ViewService.unregister(self)
 
 func _unhandled_input(event: InputEvent) -> void:

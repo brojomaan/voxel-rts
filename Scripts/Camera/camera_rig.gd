@@ -8,6 +8,9 @@ extends Node3D
 ## Hold Shift to pan this many times faster.
 @export var fast_pan_multiplier: float = 2.5
 @export var bounds: Vector2 = Vector2(30.0, 30.0)  # half-size of the playable area on X and Z
+## Pan when the mouse touches the window's edge (classic RTS). Off while testing in the editor
+## is often nicer, since the mouse leaves the game window a lot.
+@export var edge_pan: bool = true
 
 @export_group("Zoom")
 ## Low-res pixels per world unit at each zoom level (at the normal pixel size).
@@ -35,7 +38,7 @@ func _ready() -> void:
 	_visual_ppu = float(zoom_levels[_level])
 
 
-## Glide over to look at a point (the alerts feed uses this).
+## Glide over to look at a point (e.g. jump to an attacked base).
 func focus_on(world: Vector3) -> void:
 	var target: Vector3 = Vector3(clampf(world.x, -bounds.x, bounds.x), global_position.y, clampf(world.z, -bounds.y, bounds.y))
 	var tween: Tween = create_tween()
@@ -58,10 +61,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("zoom_in"):
 		_level = mini(_level + 1, zoom_levels.size() - 1)
-		TutorialService.note_event(&"camera_zoomed")
 	elif event.is_action_pressed("zoom_out"):
 		_level = maxi(_level - 1, 0)
-		TutorialService.note_event(&"camera_zoomed")
 
 
 func _process(delta: float) -> void:
@@ -83,22 +84,17 @@ func _drag(relative: Vector2) -> void:
 	right.y = 0.0
 	up_on_ground.y = 0.0
 	global_position -= (right * relative.x - up_on_ground * relative.y) * texel
-	TutorialService.note_event(&"camera_moved")
-	TutorialService.note_event(&"camera_panned")
 	global_position.x = clampf(global_position.x, -bounds.x, bounds.x)
 	global_position.z = clampf(global_position.z, -bounds.y, bounds.y)
 
 
 func _handle_pan(delta: float) -> void:
 	var input: Vector2 = Input.get_vector("camera_left", "camera_right", "camera_forward", "camera_back")
-	if SettingsService.edge_pan and not _dragging:
+	if edge_pan and not _dragging:
 		input += _edge_input()
-	input += GamepadService.get_camera_pan()
 	input = input.limit_length(1.0)
 	if input == Vector2.ZERO:
 		return
-	TutorialService.note_event(&"camera_moved")
-	TutorialService.note_event(&"camera_panned")
 
 	var direction: Vector3 = global_transform.basis * Vector3(input.x, 0.0, input.y)
 	direction.y = 0.0
@@ -106,9 +102,9 @@ func _handle_pan(delta: float) -> void:
 
 	# Zoomed out (fewer pixels per unit) pans faster, so it feels the same on screen.
 	var zoom_factor: float = float(zoom_levels[start_level]) / _visual_ppu
-	var fast: bool = Input.is_key_pressed(KEY_SHIFT) or GamepadService.is_fast_pan()
+	var fast: bool = Input.is_key_pressed(KEY_SHIFT)
 	var boost: float = fast_pan_multiplier if fast else 1.0
-	global_position += direction * pan_speed * SettingsService.camera_pan_speed * boost * zoom_factor * delta
+	global_position += direction * pan_speed * boost * zoom_factor * delta
 
 	global_position.x = clampf(global_position.x, -bounds.x, bounds.x)
 	global_position.z = clampf(global_position.z, -bounds.y, bounds.y)

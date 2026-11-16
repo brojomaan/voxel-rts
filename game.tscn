@@ -1,40 +1,25 @@
 [gd_scene format=3 uid="uid://d3pfbrw4t1dhl"]
 
-[ext_resource type="Script" uid="uid://frfsw7l0k4pq" path="res://Scripts/Rendering/pixel_view.gd" id="1_80nbo"]
-[ext_resource type="PackedScene" uid="uid://cb5kack5iypkp" path="res://World.tscn" id="2_e2o6t"]
-[ext_resource type="PackedScene" uid="uid://srt2lgopmwxh" path="res://UI/hud.tscn" id="3_feb5d"]
-[ext_resource type="PackedScene" path="res://UI/Game/pause_menu.tscn" id="4_pause"]
-[ext_resource type="PackedScene" path="res://UI/Game/unit_card.tscn" id="5_unit"]
-[ext_resource type="PackedScene" path="res://UI/Game/game_hud.tscn" id="7_pixelhud"]
+[ext_resource type="Script" path="res://Scripts/Camera/pixel_view.gd" id="1_80nbo"]
+[ext_resource type="PackedScene" uid="uid://cb5kack5iypkp" path="res://Scenes/World.tscn" id="2_e2o6t"]
 
-[node name="Game" type="Node" unique_id=938497278]
+[node name="Game" type="Node"]
 
-[node name="PixelView" type="Node" parent="." unique_id=343767505 node_paths=PackedStringArray("sub_viewport", "display")]
+[node name="PixelView" type="Node" parent="." node_paths=PackedStringArray("sub_viewport", "display")]
 script = ExtResource("1_80nbo")
 sub_viewport = NodePath("SubViewport")
 display = NodePath("Display")
 web_brightness = 1.2
 web_saturation = 1.0
-metadata/_custom_type_script = "uid://frfsw7l0k4pq"
 
-[node name="SubViewport" type="SubViewport" parent="PixelView" unique_id=730063863]
+[node name="SubViewport" type="SubViewport" parent="PixelView"]
 render_target_update_mode = 4
 
-[node name="World" parent="PixelView/SubViewport" unique_id=188986948 instance=ExtResource("2_e2o6t")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.009390831, -2.3841858e-07, 0.011988163)
+[node name="World" parent="PixelView/SubViewport" instance=ExtResource("2_e2o6t")]
 
-[node name="Display" type="TextureRect" parent="PixelView" unique_id=626735716]
+[node name="Display" type="TextureRect" parent="PixelView"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="GameHud" parent="." unique_id=859489389 instance=ExtResource("7_pixelhud")]
-
-[node name="HUD" parent="." unique_id=2093301946 instance=ExtResource("3_feb5d")]
-layer = 6
-
-[node name="PauseMenu" parent="." unique_id=1730254119 instance=ExtResource("4_pause")]
-
-[node name="UnitInfo" parent="." unique_id=1093648215 instance=ExtResource("5_unit")]

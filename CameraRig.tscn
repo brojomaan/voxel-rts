@@ -1,27 +1,27 @@
 [gd_scene format=3 uid="uid://d3ektalyy8cqu"]
 
-[ext_resource type="Script" uid="uid://buos8t6yg8pys" path="res://Scripts/Camera/camera_rig.gd" id="1_3k7dy"]
-[ext_resource type="Script" uid="uid://baag08h8xqv5n" path="res://Scripts/Rendering/pixel_snap_camera.gd" id="2_bk5nh"]
-[ext_resource type="Material" uid="uid://bke8kqth1tvgg" path="res://Scripts/Rendering/outline_shader.tres" id="3_4idhk"]
+[ext_resource type="Script" path="res://Scripts/Camera/camera_rig.gd" id="1_3k7dy"]
+[ext_resource type="Script" path="res://Scripts/Camera/pixel_snap_camera.gd" id="2_bk5nh"]
+[ext_resource type="Material" path="res://Scripts/Shaders/outline_shader.tres" id="3_4idhk"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_8qwrv"]
 size = Vector2(2, 2)
 
-[node name="CameraRig" type="Node3D" unique_id=740686965 node_paths=PackedStringArray("camera")]
+[node name="CameraRig" type="Node3D" node_paths=PackedStringArray("camera")]
 transform = Transform3D(0.7071067, -0.49999994, 0.49999994, 0, 0.7071067, 0.7071067, -0.7071067, -0.49999994, 0.49999994, 0, 0, 0)
 script = ExtResource("1_3k7dy")
 camera = NodePath("PixelSnapCamera")
 pan_speed = 3.0
 zoom_smoothing = 3.0
-metadata/_custom_type_script = "uid://buos8t6yg8pys"
+start_level = 4
 
-[node name="PixelSnapCamera" type="Camera3D" parent="." unique_id=804883333]
+[node name="PixelSnapCamera" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 30)
 projection = 1
 size = 4.0
 script = ExtResource("2_bk5nh")
 
-[node name="OutlinePass" type="MeshInstance3D" parent="PixelSnapCamera" unique_id=1554439205]
+[node name="OutlinePass" type="MeshInstance3D" parent="PixelSnapCamera"]
 material_overlay = ExtResource("3_4idhk")
 cast_shadow = 0
 extra_cull_margin = 16384.0
