@@ -44,6 +44,12 @@ func get_pixel_scale() -> int:
 	return _view.pixel_scale if is_instance_valid(_view) else 4
 
 
+## Screen units per world pixel as actually drawn: the pixel scale, or a fraction when
+## the view is at native resolution. 4 if there's no PixelView.
+func get_view_scale() -> float:
+	return _view.get_view_scale() if is_instance_valid(_view) else 4.0
+
+
 func set_pixel_scale(new_scale: int) -> void:
 	if is_instance_valid(_view):
 		_view.set_pixel_scale(new_scale)

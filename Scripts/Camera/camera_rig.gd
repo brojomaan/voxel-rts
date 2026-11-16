@@ -155,8 +155,9 @@ func _handle_zoom(delta: float) -> void:
 		_base_pixel_scale = ViewService.get_pixel_scale()
 	var pixel_scale: int = clampi(int(level_pixel_scales.get(render_ppu, _base_pixel_scale)), 1, _base_pixel_scale)
 	ViewService.set_pixel_scale(pixel_scale)
-	var density: float = float(_base_pixel_scale) / float(pixel_scale)
 
+	# The same ground whatever resolution it's drawn at: asking the view for its real
+	# scale (not the one just requested) keeps this right at native resolution too.
 	var view_height: float = camera.get_viewport().get_visible_rect().size.y
-	camera.size = view_height / (float(render_ppu) * density)
+	camera.size = view_height * ViewService.get_view_scale() / (float(render_ppu) * float(_base_pixel_scale))
 	ViewService.set_zoom_scale(_visual_ppu / float(render_ppu))

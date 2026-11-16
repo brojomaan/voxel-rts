@@ -11,6 +11,9 @@ const MARGIN: int = 1
 
 ## Screen Pixels per world Pixel. 4 at 1080p gives a 480X270 world.
 @export_range(1, 8) var pixel_scale: int = 4
+## Draw the world at the window's full resolution instead (smooth, with anti-aliasing),
+## to compare the look with and without pixels. pixel_scale is ignored while this is on.
+@export var native_resolution: bool = false
 
 @export_group("Browser colour")
 ## The browser's renderer (Compatibility) lights the scene brighter and more saturated
@@ -43,10 +46,16 @@ void fragment() {
 
 var _base_position: Vector2 = Vector2.ZERO
 var _zoom_scale: float = 1.0
+## Screen units per world pixel: pixel_scale, or under 1 at native resolution (the
+## window is usually bigger than the project's base size).
+var _view_scale: float = 4.0
 
 func _ready() -> void:
 	display.texture = sub_viewport.get_texture()
 	display.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if native_resolution:
+		display.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		sub_viewport.msaa_3d = Viewport.MSAA_4X
 	display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	display.stretch_mode = TextureRect.STRETCH_SCALE
@@ -76,21 +85,21 @@ func _exit_tree() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	# Nodes inside a SubViewport only see input that's pushed to it (e.g. the
 	# camera rig's zoom). Forward whatever the UI didn't use, scaled to low-res.
-	var scale_down: Transform2D = Transform2D.IDENTITY.scaled(Vector2.ONE / float(pixel_scale))
+	var scale_down: Transform2D = Transform2D.IDENTITY.scaled(Vector2.ONE / _view_scale)
 	sub_viewport.push_input(event.xformed_by(scale_down), true)
 
 func screen_to_view(screen_position: Vector2) -> Vector2:
 	# The display's transform includes its position, scale and pivot, so inverting it
 	# maps any screen point back onto the low-res image, however it's slid or scaled.
 	var on_display: Vector2 = display.get_global_transform().affine_inverse() * screen_position
-	return on_display / float(pixel_scale)
+	return on_display / _view_scale
 
 func view_to_screen(view_position: Vector2) -> Vector2:
-	return display.get_global_transform() * (view_position * float(pixel_scale))
+	return display.get_global_transform() * (view_position * _view_scale)
 
 ## Slide the image by a fraction of a low-res pixel (given in low-res pixels).
 func apply_subpixel_offset(offset: Vector2) -> void:
-	display.position = _base_position + offset * float(pixel_scale) * _zoom_scale
+	display.position = _base_position + offset * _view_scale * _zoom_scale
 
 func apply_zoom_scale(zoom_scale: float) -> void:
 	_zoom_scale = zoom_scale
@@ -98,20 +107,29 @@ func apply_zoom_scale(zoom_scale: float) -> void:
 
 ## Change how chunky the world's pixels are (the camera does this at far zoom).
 func set_pixel_scale(new_scale: int) -> void:
-	if new_scale == pixel_scale or new_scale < 1:
+	if new_scale == pixel_scale or new_scale < 1 or native_resolution:
 		return
 	pixel_scale = new_scale
 	_resize()
 
 
+## Screen units per world pixel right now (pixel_scale, or a fraction at native resolution).
+func get_view_scale() -> float:
+	return _view_scale
+
+
 func _resize() -> void:
 	var screen: Vector2 = get_tree().root.get_visible_rect().size
-	var low_res: Vector2i = Vector2i(ceili(screen.x / pixel_scale), ceili(screen.y / pixel_scale))
+	_view_scale = float(pixel_scale)
+	if native_resolution:
+		# One world pixel per real window pixel.
+		_view_scale = screen.y / maxf(float(get_tree().root.size.y), 1.0)
+	var low_res: Vector2i = Vector2i(ceili(screen.x / _view_scale), ceili(screen.y / _view_scale))
 	low_res += Vector2i(MARGIN, MARGIN) * 2
 	sub_viewport.size = low_res
 
 	# Tuck the border just off-screen on every side.
-	_base_position = -Vector2(MARGIN, MARGIN) * float(pixel_scale)
+	_base_position = -Vector2(MARGIN, MARGIN) * _view_scale
 	display.position = _base_position
-	display.size = Vector2(low_res * pixel_scale)
+	display.size = Vector2(low_res) * _view_scale
 	display.pivot_offset = display.size * 0.5

@@ -3,6 +3,7 @@ extends Node
 ## Test harness for the voxel prototype, not game code: click things to shoot them.
 ## Left click = tank shell, Shift + left click = rifle, Right click = destroy (crumble),
 ## F2 = switch detail (quarter res + 1/16 voxels <-> half res + 1/32 voxels),
+## F3 = pixel view on/off (off draws the same scene at full resolution),
 ## R = reset the scene.
 ## Lives inside the world's SubViewport, so it gets the input PixelView forwards, and
 ## aims with ViewService (low-res mouse + world camera).
@@ -18,6 +19,8 @@ extends Node
 
 ## 1 = quarter res, 1/16 voxels. 2 = half res, 1/32 voxels. Survives the F2 reload.
 static var detail: int = 1
+## False draws the world at full resolution, to compare. Survives the F3 reload.
+static var pixel_view: bool = true
 
 
 var _help: Label
@@ -57,6 +60,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif key.physical_keycode == KEY_F2:
 			detail = 2 if detail == 1 else 1
 			get_tree().reload_current_scene()
+		elif key.physical_keycode == KEY_F3:
+			pixel_view = not pixel_view
+			get_tree().reload_current_scene()
 
 
 ## Sets the render scale, camera zoom, voxel size and models for the detail level.
@@ -66,7 +72,9 @@ func _apply_detail() -> void:
 	# PixelView owns our SubViewport.
 	var view: PixelView = get_viewport().get_parent() as PixelView
 	if view:
+		@warning_ignore("integer_division")
 		view.pixel_scale = 4 / detail
+		view.native_resolution = not pixel_view
 	# Same ground on screen: twice the low-res pixels per world unit at half res.
 	var rig: CameraRig = get_tree().get_first_node_in_group(&"camera_rig") as CameraRig
 	if rig == null:
@@ -98,8 +106,12 @@ func _apply_detail() -> void:
 func _set_help_text() -> void:
 	var game: Node = get_viewport().get_parent().get_parent() if get_viewport().get_parent() else null
 	_help = game.get_node_or_null("TestHelp/Label") as Label if game else null
-	var mode: String = "quarter res, 1/16 voxels" if detail == 1 else "half res, 1/32 voxels"
-	_help_text = "Voxel test (%s)  -  Left click: shell   Shift+click: rifle   Right click: destroy   F2: switch detail   R: reset" % mode
+	var mode: String = "1/16 voxels" if detail == 1 else "1/32 voxels"
+	if pixel_view:
+		mode = ("quarter res, " if detail == 1 else "half res, ") + mode
+	else:
+		mode = "pixel view off, " + mode
+	_help_text = "Voxel test (%s)  -  Left click: shell   Shift+click: rifle   Right click: destroy   F2: detail   F3: pixel view   R: reset" % mode
 	if _help:
 		_help.text = _help_text
 
