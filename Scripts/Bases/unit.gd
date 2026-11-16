@@ -2,7 +2,8 @@ class_name Unit
 extends Node3D
 ## Anything the player can select and give orders to. The unit itself is just the
 ## hub: what it looks like is its VoxelBody child, how it moves is its MoveComponent
-## child, and its numbers are its UnitData.
+## child, how it fights is its AttackComponent child, and its numbers are its UnitData.
+## A new order replaces the one before it.
 ## The unit sits at ground level; the body stands on it.
 
 @export var data: UnitData
@@ -11,6 +12,7 @@ extends Node3D
 
 var body: VoxelBody
 var mover: MoveComponent
+var attacker: AttackComponent
 var _hovered: bool = false
 var _selected: bool = false
 
@@ -27,8 +29,12 @@ func _ready() -> void:
 	for child: Node in get_children():
 		if child is MoveComponent:
 			mover = child as MoveComponent
+		elif child is AttackComponent:
+			attacker = child as AttackComponent
 	if mover and data:
 		mover.setup(data)
+	if attacker and data:
+		attacker.setup(data, mover, body)
 	if body:
 		# No body, no unit (for now: later, hit points decide when it dies).
 		body.crumbled.connect(queue_free)
@@ -45,8 +51,22 @@ func set_selected(on: bool) -> void:
 
 
 func order_move(point: Vector3) -> void:
+	if attacker:
+		attacker.cancel()
 	if mover:
 		mover.move_to(point)
+
+
+## Attack another unit until it's gone or a new order comes.
+func order_attack_unit(target: Unit) -> void:
+	if attacker:
+		attacker.attack_unit(target)
+
+
+## Shell a spot on the ground until a new order comes.
+func order_attack_point(point: Vector3) -> void:
+	if attacker:
+		attacker.attack_point(point)
 
 
 ## Where a ray hits the unit's body, or {} (see VoxelBody.raycast).

@@ -17,7 +17,7 @@ extends Node
 ## Crater radius for a rifle shot, in world units.
 @export var rifle_radius: float = 0.075
 ## 1 = quarter res, 1/16 voxels. 2 = half res, 1/32 voxels. Survives the F2 reload.
-static var detail: int = 2
+static var detail: int = 1
 ## False draws the world at full resolution, to compare. Survives the F3 reload.
 static var pixel_view: bool = true
 
@@ -117,7 +117,7 @@ func _set_help_text() -> void:
 		mode = ("Quarter res, " if detail == 1 else "Half res, ") + mode
 	else:
 		mode = "Pixel view off, " + mode
-	_help_text = "%s  -  Click a tank: select   Click the ground: move   Right click: deselect\nCtrl+click: shell   Ctrl+Shift+click: rifle   Ctrl+right click: destroy   F2: detail   F3: pixel view   R: reset" % mode
+	_help_text = "%s  -  Left click: select / deselect   Right click: move   A + right click: attack   Arrows: camera\nTest: Ctrl+click shell   Ctrl+Shift+click rifle   Ctrl+right click destroy   F2 detail   F3 pixel view   R reset" % mode
 	if _help:
 		_help.text = _help_text
 

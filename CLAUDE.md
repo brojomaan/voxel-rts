@@ -45,8 +45,9 @@ The Godot project is the repo root.
 - `PixelView.pixel_scale` = base-viewport pixels per world pixel. The project uses
   `canvas_items` stretch with the default 1152x648 base, so 4 = 288x162 world pixels,
   stretched to the window (not a whole number at 1080p). 2 = 576x324.
-- Detail levels (test scene, F2): quarter res with 1/16 voxels at 16 ppu, or half res
-  with 1/32 voxels at 32 ppu. Units are the same size on screen either way.
+- Decided 2026-11-16: the game uses the pixel view at quarter res with 1/16 voxels
+  (16 ppu). The test scene can still show half res with 1/32 voxels (F2) and full
+  resolution with no pixel view (F3), for comparison only.
 - `PixelSnapCamera` snaps to the low-res grid and hands the leftover sub-pixel to the
   display, so panning is smooth without crawling pixels. `CameraRig` pans/zooms in
   pixel-perfect steps (`zoom_levels` = low-res pixels per world unit).
@@ -112,9 +113,15 @@ but the ground plane, a native (C#/C++) mesher if GDScript ever isn't enough.
 - `MoveComponent`: straight line to a point; if it's facing more than
   `turn_in_place_degrees` off, it stops and pivots first. No pathfinding, avoidance or
   slopes yet.
+- `AttackComponent`: closes to within range, turns the whole unit to face the target
+  (no separate turret yet), fires a `Shell` (`Scripts/World/shell.gd`) per reload until
+  cancelled. Shells fly straight and carve the first voxel body in their path that
+  isn't the shooter, friend or foe. Visual only: no hit points yet.
 - `SelectionService` holds hovered/selected (one unit for now); `InteractionService`
-  turns the mouse into hover, select (left click a unit), move order (left click the
-  ground) and deselect (right click). Picking is voxel-exact via `VoxelBody.raycast`.
+  turns the mouse into orders. Controls (decided 2026-11-16): left click selects, left
+  click on nothing deselects, right click moves, A + right click attacks (a unit or a
+  spot). A is the `attack_modifier` action; the camera pans on the arrow keys.
+  Picking is voxel-exact via `VoxelBody.raycast`.
 - Hover (yellow) and selection (green) lines are drawn by the camera's outline pass.
   A body marks itself through ROUGHNESS (`outline_mark` instance uniform in the voxel
   shader; values must match `outline.gdshader`). Needs Forward+, and no MSAA on the
