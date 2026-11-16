@@ -18,6 +18,8 @@ uniform vec4 albedo : source_color = vec4(1.0);
 uniform sampler2D albedo_texture : source_color, filter_nearest, hint_default_white;
 // Voxel models colour each face per vertex, and debris per instance (sRGB).
 uniform bool use_vertex_color = false;
+// Vertex colours with alpha 0 are team colour: their grey is a brightness for this.
+uniform vec4 team_color : source_color = vec4(1.0, 0.0, 1.0, 1.0);
 
 group_uniforms Emission;
 // Glows regardless of lighting (fairy lights, windows, the star). Black = off.
@@ -58,10 +60,14 @@ void fragment() {
 	if (use_vertex_color) {
 #if CURRENT_RENDERER == RENDERER_COMPATIBILITY
 		// Compatibility already turns vertex colours linear; converting again darkens them.
-		base *= COLOR.rgb;
+		vec3 vertex_colour = COLOR.rgb;
 #else
-		base *= srgb_to_linear(COLOR.rgb);
+		vec3 vertex_colour = srgb_to_linear(COLOR.rgb);
 #endif
+		if (COLOR.a < 0.5) {
+			vertex_colour *= team_color.rgb;
+		}
+		base *= vertex_colour;
 	}
 	ALBEDO = base;
 

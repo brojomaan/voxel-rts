@@ -41,8 +41,11 @@ The Godot project is the repo root.
 
 - `game.tscn` (main scene) → `PixelView` renders `Scenes/World.tscn` into a low-res
   `SubViewport` and upscales it with nearest filtering. HUD goes outside it, at full res.
-- `PixelView.pixel_scale` = screen pixels per world pixel (4 at 1080p = 480x270). The
-  GDD wants to test 2x/3x/4x for voxel detail.
+- `PixelView.pixel_scale` = base-viewport pixels per world pixel. The project uses
+  `canvas_items` stretch with the default 1152x648 base, so 4 = 288x162 world pixels,
+  stretched to the window (not a whole number at 1080p). 2 = 576x324.
+- Detail levels (test scene, F2): quarter res with 1/16 voxels at 16 ppu, or half res
+  with 1/32 voxels at 32 ppu. Units are the same size on screen either way.
 - `PixelSnapCamera` snaps to the low-res grid and hands the leftover sub-pixel to the
   display, so panning is smooth without crawling pixels. `CameraRig` pans/zooms in
   pixel-perfect steps (`zoom_levels` = low-res pixels per world unit).
@@ -69,6 +72,11 @@ The Godot project is the repo root.
   vertex colours), `VoxelBody` (shared mesh, raycast, carve, support check, crumble),
   `VoxelDebris` (pooled MultiMesh). `Scripts/Tools/voxel_test_gun.gd` is a test harness.
 - Voxel materials need `use_vertex_color` on (`Materials/voxel.tres`).
+- Team colour: magenta palette entries (FF00FF, CC00CC, 990099, 660066) are swapped for
+  `VoxelBody.team_color` in the shader, so one model serves every team. The shared
+  palette is `Art/Voxel/palette.png` (load it in MagicaVoxel).
+- Damaged bodies are split into `section_size`³ sections and only touched sections are
+  rebuilt; the support check searches out from the crater, not the whole model.
 - Test models come from `Tools/make_test_vox.py` (placeholders until Mark's art).
 
 ## Testing (headless)

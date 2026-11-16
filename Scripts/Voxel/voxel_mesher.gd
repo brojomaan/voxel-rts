@@ -22,14 +22,23 @@ const CORNERS: Array = [
 	[Vector3(0, 0, 0), Vector3(0, 1, 0), Vector3(1, 1, 0), Vector3(1, 0, 0)],
 ]
 
+## How many solid voxels the last build() saw in its range (so callers can skip
+## sections that are empty for good).
+static var last_solid_count: int = 0
+
 ## Triangle order per face, worked out once so every face winds the way Godot draws
 ## as its front (clockwise seen from outside).
 static var _winding: Array[PackedInt32Array] = []
 
 
 ## Builds the mesh. origin = where the grid's (0, 0, 0) corner sits, in local units.
-## Returns null for an empty grid.
-static func build(grid: VoxelGrid, voxel_size: float, origin: Vector3) -> ArrayMesh:
+## from/to (to is exclusive) limit it to one section of the grid; neighbours outside
+## the section still count, so sections join up without gaps or doubled faces.
+## Returns null if there's nothing to draw.
+static func build(grid: VoxelGrid, voxel_size: float, origin: Vector3,
+		from: Vector3i = Vector3i.ZERO, to: Vector3i = Vector3i(-1, -1, -1)) -> ArrayMesh:
+	if to.x < 0:
+		to = grid.size
 	_ensure_winding()
 	var verts: PackedVector3Array = PackedVector3Array()
 	var normals: PackedVector3Array = PackedVector3Array()
@@ -44,11 +53,13 @@ static func build(grid: VoxelGrid, voxel_size: float, origin: Vector3) -> ArrayM
 	# Index steps to each neighbour, so the inner loop is plain arithmetic.
 	var steps: PackedInt32Array = PackedInt32Array([1, -1, sx, -sx, layer, -layer])
 
-	var i: int = 0
-	for z: int in sz:
-		for y: int in sy:
-			for x: int in sx:
+	var solid: int = 0
+	for z: int in range(from.z, to.z):
+		for y: int in range(from.y, to.y):
+			var i: int = from.x + sx * (y + sy * z)
+			for x: int in range(from.x, to.x):
 				if cells[i] != 0:
+					solid += 1
 					var colour: Color = grid.color_at(i)
 					var base: Vector3 = Vector3(x, y, z)
 					for f: int in 6:
@@ -74,6 +85,7 @@ static func build(grid: VoxelGrid, voxel_size: float, origin: Vector3) -> ArrayM
 							indices.append(first + k)
 				i += 1
 
+	last_solid_count = solid
 	if verts.is_empty():
 		return null
 	var arrays: Array = []

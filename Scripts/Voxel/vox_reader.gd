@@ -7,6 +7,9 @@ extends RefCounted
 ## MagicaVoxel is Z-up with +Y as "forward" in its viewport; we turn that into Godot's
 ## Y-up with -Z forward, so a barrel modelled pointing +Y points the way Godot faces.
 ##
+## Team colour: palette entries that are pure magenta (any brightness, e.g. FF00FF,
+## CC00CC, 990099, 660066) are team colour. The game swaps them for the owner's colour.
+##
 ## Gotcha: .vox isn't a type Godot imports, so exported builds need "*.vox" in the
 ## export preset's "Filters to export non-resource files". An import plugin that
 ## turns .vox into a resource would remove that step later.
@@ -62,6 +65,10 @@ static func load_grid(path: String, model_index: int = 0) -> VoxelGrid:
 	var mv_size: Vector3i = sizes[model_index]
 	var grid: VoxelGrid = VoxelGrid.new(Vector3i(mv_size.x, mv_size.z, mv_size.y))
 	grid.palette = palette
+	for i: int in range(1, 256):
+		var c: Color = palette[i]
+		if c.g < 0.05 and c.r > 0.25 and absf(c.r - c.b) < 0.02:
+			grid.team_shade[i] = c.r
 	var data: PackedByteArray = models[model_index]
 	for v: int in data.size() / 4:
 		var x: int = data[v * 4]

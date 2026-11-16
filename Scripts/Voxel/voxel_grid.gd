@@ -11,6 +11,9 @@ var cells: PackedByteArray = PackedByteArray()
 var shade: PackedByteArray = PackedByteArray()
 ## 256 colours in sRGB; index 0 is unused (empty).
 var palette: PackedColorArray = PackedColorArray()
+## Per palette index: 0 = ordinary colour, otherwise this entry is a team colour
+## (one of the reserved magentas) and the value is its brightness, 0..1.
+var team_shade: PackedFloat32Array = PackedFloat32Array()
 
 
 func _init(grid_size: Vector3i = Vector3i.ZERO) -> void:
@@ -20,6 +23,7 @@ func _init(grid_size: Vector3i = Vector3i.ZERO) -> void:
 	shade.fill(255)
 	palette.resize(256)
 	palette.fill(Color(0.7, 0.7, 0.7))
+	team_shade.resize(256)
 
 
 func index_of(cell: Vector3i) -> int:
@@ -42,11 +46,24 @@ func is_solid(cell: Vector3i) -> bool:
 	return in_bounds(cell) and cells[index_of(cell)] != 0
 
 
-## The cell's colour with its scorch applied (sRGB).
+## The cell's colour with its scorch applied (sRGB), as the mesher writes it:
+## team cells come back as a grey brightness with alpha 0, which tells the shader to
+## multiply the team colour in. Ordinary cells have alpha 1.
 func color_at(index: int) -> Color:
-	var base: Color = palette[cells[index]]
 	var s: float = float(shade[index]) / 255.0
-	return Color(base.r * s, base.g * s, base.b * s)
+	var team: float = team_shade[cells[index]]
+	if team > 0.0:
+		return Color(team * s, team * s, team * s, 0.0)
+	var base: Color = palette[cells[index]]
+	return Color(base.r * s, base.g * s, base.b * s, 1.0)
+
+
+## The colour a cell actually shows, given the owner's team colour (sRGB). For debris.
+func display_color_at(index: int, team_color: Color) -> Color:
+	var c: Color = color_at(index)
+	if c.a < 0.5:
+		return Color(team_color.r * c.r, team_color.g * c.g, team_color.b * c.b, 1.0)
+	return c
 
 
 func count_solid() -> int:
@@ -60,4 +77,5 @@ func duplicate_grid() -> VoxelGrid:
 	copy.cells = cells.duplicate()
 	copy.shade = shade.duplicate()
 	copy.palette = palette.duplicate()
+	copy.team_shade = team_shade.duplicate()
 	return copy

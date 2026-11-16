@@ -19,6 +19,9 @@ size = Vector2(64, 64)
 
 [node name="World" type="Node3D"]
 
+[node name="VoxelTestGun" type="Node" parent="."]
+script = ExtResource("6_gun")
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_day")
 
@@ -39,9 +42,6 @@ surface_material_override/0 = ExtResource("2_ground")
 script = ExtResource("5_debris")
 material = ExtResource("3_voxel")
 
-[node name="VoxelTestGun" type="Node" parent="."]
-script = ExtResource("6_gun")
-
 [node name="TestProps" type="Node3D" parent="."]
 
 [node name="Building" type="Node3D" parent="TestProps"]
@@ -55,20 +55,22 @@ log_timings = true
 [node name="BlueTank" type="Node3D" parent="TestProps"]
 transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 1.5, 0, 1)
 script = ExtResource("4_body")
-vox_path = "res://Art/Voxel/test_tank_blue.vox"
+vox_path = "res://Art/Voxel/test_tank.vox"
 material = ExtResource("3_voxel")
 log_timings = true
 
 [node name="RedTank" type="Node3D" parent="TestProps"]
 transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 4, 0, -3)
 script = ExtResource("4_body")
-vox_path = "res://Art/Voxel/test_tank_red.vox"
+vox_path = "res://Art/Voxel/test_tank.vox"
 material = ExtResource("3_voxel")
+team_color = Color(0.78, 0.25, 0.18, 1)
 log_timings = true
 
 [node name="RedTank2" type="Node3D" parent="TestProps"]
 transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 5.5, 0, -1)
 script = ExtResource("4_body")
-vox_path = "res://Art/Voxel/test_tank_red.vox"
+vox_path = "res://Art/Voxel/test_tank.vox"
 material = ExtResource("3_voxel")
+team_color = Color(0.78, 0.25, 0.18, 1)
 log_timings = true

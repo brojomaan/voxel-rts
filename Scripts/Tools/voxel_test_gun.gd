@@ -2,13 +2,26 @@ class_name VoxelTestGun
 extends Node
 ## Test harness for the voxel prototype, not game code: click things to shoot them.
 ## Left click = tank shell, Shift + left click = rifle, Right click = destroy (crumble),
-## R = reset the scene. Lives inside the world's SubViewport, so it gets the input
-## PixelView forwards, and aims with ViewService (low-res mouse + world camera).
+## F2 = switch detail (quarter res + 1/16 voxels <-> half res + 1/32 voxels),
+## R = reset the scene.
+## Lives inside the world's SubViewport, so it gets the input PixelView forwards, and
+## aims with ViewService (low-res mouse + world camera).
+## Must sit above the camera rig, debris and props in the scene: it sets up the detail
+## level in its _ready, before theirs run.
 
-## Crater radius in voxels for a shell.
-@export var shell_radius: float = 4.0
-## Crater radius in voxels for a rifle shot.
-@export var rifle_radius: float = 1.2
+## Crater radius for a shell, in world units (so it's the same size at either detail).
+@export var shell_radius: float = 0.25
+## Crater radius for a rifle shot, in world units.
+@export var rifle_radius: float = 0.075
+## Where the test models are; "_hi" is added to the file name at double detail.
+@export var props_path: NodePath = ^"../TestProps"
+
+## 1 = quarter res, 1/16 voxels. 2 = half res, 1/32 voxels. Survives the F2 reload.
+static var detail: int = 1
+
+
+func _ready() -> void:
+	_apply_detail()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -20,16 +33,63 @@ func _unhandled_input(event: InputEvent) -> void:
 			destroy()
 		return
 	var key: InputEventKey = event as InputEventKey
-	if key and key.pressed and not key.echo and key.physical_keycode == KEY_R:
-		get_tree().reload_current_scene()
+	if key and key.pressed and not key.echo:
+		if key.physical_keycode == KEY_R:
+			get_tree().reload_current_scene()
+		elif key.physical_keycode == KEY_F2:
+			detail = 2 if detail == 1 else 1
+			get_tree().reload_current_scene()
 
 
-## Fires along the mouse ray at the nearest voxel body.
+## Sets the render scale, camera zoom, voxel size and models for the detail level.
+## Runs before the other world nodes' _ready, so they start up with these values.
+func _apply_detail() -> void:
+	var voxel_size: float = 1.0 / (16.0 * detail)
+	# PixelView owns our SubViewport.
+	var view: PixelView = get_viewport().get_parent() as PixelView
+	if view:
+		view.pixel_scale = 4 / detail
+	# Same ground on screen: twice the low-res pixels per world unit at half res.
+	var rig: CameraRig = get_tree().get_first_node_in_group(&"camera_rig") as CameraRig
+	if rig == null:
+		rig = get_parent().find_child("CameraRig", false, false) as CameraRig
+	if rig:
+		var ppu: int = 16 * detail
+		var level: int = rig.zoom_levels.find(ppu)
+		if level >= 0:
+			rig.start_level = level
+	var debris: VoxelDebris = get_parent().find_child("VoxelDebris", false, false) as VoxelDebris
+	if debris:
+		debris.piece_size = voxel_size
+	var props: Node = get_node_or_null(props_path)
+	if props:
+		for child: Node in props.get_children():
+			var body: VoxelBody = child as VoxelBody
+			if body == null:
+				continue
+			body.voxel_size = voxel_size
+			body.scorch_width *= detail
+			body.loose_debris_limit *= detail * detail * detail
+			if detail > 1:
+				body.vox_path = body.vox_path.get_basename() + "_hi.vox"
+	_set_help_text()
+
+
+func _set_help_text() -> void:
+	var game: Node = get_viewport().get_parent().get_parent() if get_viewport().get_parent() else null
+	var label: Label = game.get_node_or_null("TestHelp/Label") as Label if game else null
+	if label:
+		var mode: String = "quarter res, 1/16 voxels" if detail == 1 else "half res, 1/32 voxels"
+		label.text = "Voxel test (%s)  -  Left click: shell   Shift+click: rifle   Right click: destroy   F2: switch detail   R: reset" % mode
+
+
+## Fires along the mouse ray at the nearest voxel body. radius in world units.
 func shoot(radius: float) -> void:
 	var hit: Dictionary = _pick()
 	if hit.is_empty():
 		return
-	(hit.body as VoxelBody).carve(hit.point, radius, hit.dir)
+	var body: VoxelBody = hit.body as VoxelBody
+	body.carve(hit.point, radius / body.voxel_size, hit.dir)
 
 
 func destroy() -> void:
