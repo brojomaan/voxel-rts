@@ -11,7 +11,7 @@ const MARGIN: int = 1
 
 ## Screen Pixels per world Pixel. 4 at 1080p gives a 480X270 world.
 @export_range(1, 8) var pixel_scale: int = 4
-## Draw the world at the window's full resolution instead (smooth, with anti-aliasing),
+## Draw the world at the window's full resolution instead (smooth, with FXAA),
 ## to compare the look with and without pixels. pixel_scale is ignored while this is on.
 @export var native_resolution: bool = false
 
@@ -55,7 +55,8 @@ func _ready() -> void:
 	display.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	if native_resolution:
 		display.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-		sub_viewport.msaa_3d = Viewport.MSAA_4X
+		# Not MSAA: it blends the buffer the outline pass reads its selection marks from.
+		sub_viewport.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
 	display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	display.stretch_mode = TextureRect.STRETCH_SCALE

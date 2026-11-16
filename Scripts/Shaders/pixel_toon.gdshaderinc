@@ -29,6 +29,10 @@ uniform vec4 team_color : source_color = vec4(1.0, 0.0, 1.0, 1.0);
 // Crumbling: everything above this height (in voxels, model space) isn't drawn.
 // Per instance, so bodies sharing a material crumble on their own.
 instance uniform float clip_height = 100000.0;
+// Selection outline: 0 = none, 1 = hovered, 2 = selected. The outline pass can't see
+// which object a pixel belongs to, so this is passed to it through ROUGHNESS (which
+// this look doesn't otherwise use). The values must match outline.gdshader.
+instance uniform float outline_mark = 0.0;
 varying float model_y;
 varying vec3 cap_normal;
 #endif
@@ -149,6 +153,14 @@ void fragment() {
 #endif
 
 	ALBEDO = base;
+	ROUGHNESS = 1.0;
+#ifdef VOXEL
+	if (outline_mark > 1.5) {
+		ROUGHNESS = 0.65;
+	} else if (outline_mark > 0.5) {
+		ROUGHNESS = 0.35;
+	}
+#endif
 
 	vec3 glow = emission.rgb * texture(emission_texture, UV).rgb;
 	if (emission_uses_albedo) {

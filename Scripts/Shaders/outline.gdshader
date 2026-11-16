@@ -23,6 +23,12 @@ uniform float normal_threshold : hint_range(0.0, 2.0) = 0.15;
 uniform float highlight_strength : hint_range(0.0, 2.0) = 0.4;
 // Picks which side of a crease gets the line (roughly "towards the light").
 uniform vec3 normal_bias = vec3(1.0, 1.0, 1.0);
+
+group_uniforms Selection;
+// A line just outside units the player is pointing at or has selected. Units mark
+// themselves through their roughness (see outline_mark in pixel_toon.gdshaderinc).
+uniform vec4 hover_color : source_color = vec4(1.0, 0.85, 0.1, 1.0);
+uniform vec4 selected_color : source_color = vec4(0.2, 0.95, 0.25, 1.0);
 group_uniforms;
 
 
@@ -54,6 +60,19 @@ float linear_depth(vec2 uv, mat4 inv_projection) {
 #ifdef HAS_NORMAL_BUFFER
 vec3 view_normal(vec2 uv) {
 	return texture(normal_texture, uv).xyz * 2.0 - 1.0;
+}
+
+
+// 0 = not marked, 1 = hovered, 2 = selected.
+int outline_mark(vec2 uv) {
+	float roughness = texture(normal_texture, uv).a;
+	if (roughness > 0.25 && roughness < 0.45) {
+		return 1;
+	}
+	if (roughness > 0.55 && roughness < 0.75) {
+		return 2;
+	}
+	return 0;
 }
 #endif
 
@@ -97,4 +116,21 @@ void fragment() {
 		shade = 1.0 + highlight_strength;
 	}
 	ALBEDO = color * shade;
+
+#ifdef HAS_NORMAL_BUFFER
+	// Selection line: on pixels that aren't part of a marked unit but touch one.
+	// One low-res pixel wide in the pixel view; a few pixels at full resolution.
+	if (outline_mark(uv) == 0) {
+		float width = max(1.0, round(VIEWPORT_SIZE.y / 360.0));
+		int mark = 0;
+		for (int i = 0; i < 4; i++) {
+			mark = max(mark, outline_mark(uv + offsets[i] * width));
+		}
+		if (mark == 2) {
+			ALBEDO = selected_color.rgb;
+		} else if (mark == 1) {
+			ALBEDO = hover_color.rgb;
+		}
+	}
+#endif
 }

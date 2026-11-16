@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" path="res://Scripts/Resources/unit_data.gd" id="1_data"]
+
+[resource]
+script = ExtResource("1_data")
+display_name = "Tank"
+move_speed = 2.0
+turn_speed_degrees = 120.0
+turn_in_place_degrees = 12.0

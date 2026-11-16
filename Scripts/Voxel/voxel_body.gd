@@ -19,6 +19,9 @@ extends Node3D
 ## Finished crumbling and about to be freed.
 signal crumbled
 
+## The line drawn round the body by the camera's outline pass.
+enum Outline { NONE, HOVERED, SELECTED }
+
 @export_file("*.vox") var vox_path: String = ""
 ## Which model in the file (a .vox can hold several).
 @export var model_index: int = 0
@@ -85,6 +88,7 @@ var _falling: bool = false
 var _velocity: Vector3 = Vector3.ZERO
 var _spin: Vector3 = Vector3.ZERO
 var _lowest_layer: int = 0
+var _outline: Outline = Outline.NONE
 ## A broken-off chunk is handed its meshes before it enters the tree: section -> ArrayMesh.
 var _initial_meshes: Dictionary = {}
 
@@ -234,6 +238,18 @@ func crumble() -> void:
 	set_process(true)
 
 
+## Shows (or clears) the hover / selection line round the body.
+func set_outline(kind: Outline) -> void:
+	if kind == _outline:
+		return
+	_outline = kind
+	if _whole:
+		_whole.set_instance_shader_parameter(&"outline_mark", float(kind))
+	for instance: MeshInstance3D in _sections:
+		if instance:
+			instance.set_instance_shader_parameter(&"outline_mark", float(kind))
+
+
 ## True while a hit is queued or being worked out.
 func is_busy() -> bool:
 	return _job_running or not _queued.is_empty()
@@ -320,6 +336,8 @@ func _set_section_mesh(s: int, mesh: Mesh) -> void:
 	if instance == null:
 		instance = MeshInstance3D.new()
 		instance.material_override = _material
+		if _outline != Outline.NONE:
+			instance.set_instance_shader_parameter(&"outline_mark", float(_outline))
 		_visual.add_child(instance)
 		_sections[s] = instance
 	instance.mesh = mesh

@@ -1,7 +1,9 @@
 class_name VoxelTestGun
 extends Node
-## Test harness for the voxel prototype, not game code: click things to shoot them.
-## Left click = tank shell, Shift + left click = rifle, Right click = destroy (crumble),
+## Test harness for the voxel prototype, not game code: Ctrl + click things to shoot them
+## (plain clicks belong to InteractionService: select and move).
+## Ctrl + left click = tank shell, Ctrl + Shift + left click = rifle,
+## Ctrl + right click = destroy (crumble),
 ## F2 = switch detail (quarter res + 1/16 voxels <-> half res + 1/32 voxels),
 ## F3 = pixel view on/off (off draws the same scene at full resolution),
 ## R = reset the scene.
@@ -14,11 +16,8 @@ extends Node
 @export var shell_radius: float = 0.25
 ## Crater radius for a rifle shot, in world units.
 @export var rifle_radius: float = 0.075
-## Where the test models are; "_hi" is added to the file name at double detail.
-@export var props_path: NodePath = ^"../TestProps"
-
 ## 1 = quarter res, 1/16 voxels. 2 = half res, 1/32 voxels. Survives the F2 reload.
-static var detail: int = 1
+static var detail: int = 2
 ## False draws the world at full resolution, to compare. Survives the F3 reload.
 static var pixel_view: bool = true
 
@@ -48,6 +47,8 @@ func _process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	var button: InputEventMouseButton = event as InputEventMouseButton
 	if button and button.pressed:
+		if not button.ctrl_pressed:
+			return
 		if button.button_index == MOUSE_BUTTON_LEFT:
 			shoot(rifle_radius if button.shift_pressed else shell_radius)
 		elif button.button_index == MOUSE_BUTTON_RIGHT:
@@ -87,20 +88,25 @@ func _apply_detail() -> void:
 	var debris: VoxelDebris = get_parent().find_child("VoxelDebris", false, false) as VoxelDebris
 	if debris:
 		debris.piece_size = voxel_size
-	var props: Node = get_node_or_null(props_path)
-	if props:
-		for child: Node in props.get_children():
-			var body: VoxelBody = child as VoxelBody
-			if body == null:
-				continue
-			body.voxel_size = voxel_size
-			body.scorch_width *= detail
-			body.loose_debris_limit *= detail * detail * detail
-			# Models without a double-detail version (e.g. hand-made ones) stay as they are.
-			var hi_path: String = body.vox_path.get_basename() + "_hi.vox"
-			if detail > 1 and FileAccess.file_exists(hi_path):
-				body.vox_path = hi_path
+	# Every voxel body in the world, units' included: models with a "_hi" version use
+	# it at double detail and the plain one otherwise.
+	for body: VoxelBody in _bodies_under(get_parent()):
+		body.voxel_size = voxel_size
+		body.scorch_width = 1.5 * detail
+		body.loose_debris_limit = 40 * detail * detail * detail
+		var plain_path: String = body.vox_path.replace("_hi.vox", ".vox")
+		var hi_path: String = plain_path.get_basename() + "_hi.vox"
+		body.vox_path = hi_path if detail > 1 and FileAccess.file_exists(hi_path) else plain_path
 	_set_help_text()
+
+
+func _bodies_under(node: Node) -> Array[VoxelBody]:
+	var found: Array[VoxelBody] = []
+	for child: Node in node.get_children():
+		if child is VoxelBody:
+			found.append(child as VoxelBody)
+		found.append_array(_bodies_under(child))
+	return found
 
 
 func _set_help_text() -> void:
@@ -108,10 +114,10 @@ func _set_help_text() -> void:
 	_help = game.get_node_or_null("TestHelp/Label") as Label if game else null
 	var mode: String = "1/16 voxels" if detail == 1 else "1/32 voxels"
 	if pixel_view:
-		mode = ("quarter res, " if detail == 1 else "half res, ") + mode
+		mode = ("Quarter res, " if detail == 1 else "Half res, ") + mode
 	else:
-		mode = "pixel view off, " + mode
-	_help_text = "Voxel test (%s)  -  Left click: shell   Shift+click: rifle   Right click: destroy   F2: detail   F3: pixel view   R: reset" % mode
+		mode = "Pixel view off, " + mode
+	_help_text = "%s  -  Click a tank: select   Click the ground: move   Right click: deselect\nCtrl+click: shell   Ctrl+Shift+click: rifle   Ctrl+right click: destroy   F2: detail   F3: pixel view   R: reset" % mode
 	if _help:
 		_help.text = _help_text
 

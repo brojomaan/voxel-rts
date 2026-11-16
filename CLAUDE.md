@@ -31,8 +31,9 @@ The Godot project is the repo root.
   it's for and any gotcha. Comments explain why, not what.
 - Architecture: **services** (autoloads in `Scripts/Services/`), **components**
   (`Scripts/Components/`, one job each, found by type), **bases** (`Scripts/Bases/`).
-  Input goes through a dedicated input service, not scattered `_input`s (the camera rig
-  is the current exception, carried over from Two Billion Presents).
+  World mouse input goes through `InteractionService`, not scattered `_input`s (the
+  camera rig is the exception, carried over from Two Billion Presents; the voxel test
+  gun is another, on Ctrl + click).
 - **Data lives in resources** (`.tres`) so Mark can tune in the Inspector. Prefer adding
   a field to a resource over a hard-coded number.
 - Player-facing text: short, British English, straight quotes.
@@ -103,6 +104,23 @@ How it works (`Scripts/Voxel/`, `Scripts/Services/voxel_service.gd`):
 Not done yet: greedy meshing, an import plugin for `.vox`, debris bouncing on anything
 but the ground plane, a native (C#/C++) mesher if GDScript ever isn't enough.
 
+## Units
+
+- `Unit` (`Scripts/Bases/unit.gd`): the hub for anything selectable. Its look is a
+  `VoxelBody` child, its movement a `MoveComponent` child, its numbers a `UnitData`
+  resource (`Units/*.tres`). Scene: `Units/tank.tscn` (Claude's test tank for now).
+- `MoveComponent`: straight line to a point; if it's facing more than
+  `turn_in_place_degrees` off, it stops and pivots first. No pathfinding, avoidance or
+  slopes yet.
+- `SelectionService` holds hovered/selected (one unit for now); `InteractionService`
+  turns the mouse into hover, select (left click a unit), move order (left click the
+  ground) and deselect (right click). Picking is voxel-exact via `VoxelBody.raycast`.
+- Hover (yellow) and selection (green) lines are drawn by the camera's outline pass.
+  A body marks itself through ROUGHNESS (`outline_mark` instance uniform in the voxel
+  shader; values must match `outline.gdshader`). Needs Forward+, and no MSAA on the
+  world viewport (it blends the marks).
+- Mark's idea for later, not built: tanks take more damage from behind.
+
 ## Testing (headless)
 
 Godot 4.7.1 Linux build at `/tmp/godot/Godot_v4.7.1-stable_linux.x86_64` (download it from
@@ -126,6 +144,9 @@ xvfb-run -a -s "-screen 0 1920x1080x24" /tmp/godot/Godot_v4.7.1-stable_linux.x86
   --rendering-method forward_plus` instead of `--rendering-driver opengl3`. It's slower
   per frame. opengl3 gives the Compatibility (browser) look, brighter and more saturated.
 - Look at screenshots before saying visual work is done.
+- To drive the mouse in a test: `DisplayServer.warp_mouse()` (window pixels) to move,
+  `Input.parse_input_event()` for clicks. `push_input` doesn't move the mouse position
+  the services read.
 - `--headless` has no renderer, so voxel bodies have no meshes there: fine for timing
   the main thread, useless for checking meshes. For those, run on lavapipe and compare
   each drawn section with a fresh `VoxelMesher.build_section` of the body's grid.

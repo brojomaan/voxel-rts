@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 ViewService="*res://Scripts/Services/view_service.gd"
 VoxelService="*res://Scripts/Services/voxel_service.gd"
+SelectionService="*res://Scripts/Services/selection_service.gd"
+InteractionService="*res://Scripts/Services/interaction_service.gd"
 
 [display]
 

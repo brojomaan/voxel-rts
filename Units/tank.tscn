@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/Bases/unit.gd" id="1_unit"]
+[ext_resource type="Resource" path="res://Units/tank_data.tres" id="2_data"]
+[ext_resource type="Script" path="res://Scripts/Voxel/voxel_body.gd" id="3_body"]
+[ext_resource type="Material" path="res://Materials/voxel.tres" id="4_voxel"]
+[ext_resource type="Script" path="res://Scripts/Components/move_component.gd" id="5_move"]
+[ext_resource type="Script" path="res://Scripts/Camera/pixel_snap_component.gd" id="6_snap"]
+
+[node name="Tank" type="Node3D"]
+script = ExtResource("1_unit")
+data = ExtResource("2_data")
+
+[node name="Body" type="Node3D" parent="."]
+script = ExtResource("3_body")
+vox_path = "res://Art/Voxel/test_tank_hi.vox"
+voxel_size = 0.03125
+material = ExtResource("4_voxel")
+scorch_width = 3.0
+
+[node name="MoveComponent" type="Node" parent="."]
+script = ExtResource("5_move")
+
+[node name="PixelSnapComponent" type="Node" parent="." node_paths=PackedStringArray("target")]
+script = ExtResource("6_snap")
+target = NodePath("../Body")

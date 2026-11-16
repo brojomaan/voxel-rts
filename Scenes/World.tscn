@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://df3hda52k2ju1" path="res://Scripts/Voxel/voxel_debris.gd" id="5_debris"]
 [ext_resource type="Script" uid="uid://31cnpbd4hn01" path="res://Scripts/Tools/voxel_test_gun.gd" id="6_gun"]
 [ext_resource type="Material" path="res://Materials/voxel_debris.tres" id="7_debris_mat"]
+[ext_resource type="PackedScene" path="res://Units/tank.tscn" id="8_tank"]
 
 [sub_resource type="Environment" id="Environment_day"]
 background_mode = 1
@@ -43,6 +44,22 @@ surface_material_override/0 = ExtResource("2_ground")
 script = ExtResource("5_debris")
 material = ExtResource("7_debris_mat")
 
+[node name="Units" type="Node3D" parent="."]
+
+[node name="BlueTank" parent="Units" instance=ExtResource("8_tank")]
+transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 1.5, 0, 1)
+
+[node name="BlueTank2" parent="Units" instance=ExtResource("8_tank")]
+transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, -0.5, 0, 2.5)
+
+[node name="RedTank" parent="Units" instance=ExtResource("8_tank")]
+transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 4, 0, -3)
+team_color = Color(0.78, 0.25, 0.18, 1)
+
+[node name="RedTank2" parent="Units" instance=ExtResource("8_tank")]
+transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 5.5, 0, -1)
+team_color = Color(0.78, 0.25, 0.18, 1)
+
 [node name="TestProps" type="Node3D" parent="." unique_id=246943140]
 
 [node name="Building" type="Node3D" parent="TestProps" unique_id=290329681]
@@ -51,29 +68,6 @@ script = ExtResource("4_body")
 vox_path = "res://Art/Voxel/test_building.vox"
 material = ExtResource("3_voxel")
 check_support = true
-log_timings = true
-
-[node name="BlueTank" type="Node3D" parent="TestProps" unique_id=22175280]
-transform = Transform3D(0.8660254, 0, 0.5, 0, 1, 0, -0.5, 0, 0.8660254, 1.5, 0, 1)
-script = ExtResource("4_body")
-vox_path = "res://Art/Voxel/test_tank.vox"
-material = ExtResource("3_voxel")
-log_timings = true
-
-[node name="RedTank" type="Node3D" parent="TestProps" unique_id=676693495]
-transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 4, 0, -3)
-script = ExtResource("4_body")
-vox_path = "res://Art/Voxel/test_tank.vox"
-material = ExtResource("3_voxel")
-team_color = Color(0.78, 0.25, 0.18, 1)
-log_timings = true
-
-[node name="RedTank2" type="Node3D" parent="TestProps" unique_id=316783127]
-transform = Transform3D(-0.70710677, 0, -0.70710677, 0, 1, 0, 0.70710677, 0, -0.70710677, 5.5, 0, -1)
-script = ExtResource("4_body")
-vox_path = "res://Art/Voxel/test_tank.vox"
-material = ExtResource("3_voxel")
-team_color = Color(0.78, 0.25, 0.18, 1)
 log_timings = true
 
 [node name="RedTank3" type="Node3D" parent="TestProps" unique_id=1447966676]
