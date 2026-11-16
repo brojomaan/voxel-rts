@@ -6,6 +6,7 @@ extends Node
 ## Ctrl + right click = destroy (crumble),
 ## F2 = switch detail (quarter res + 1/16 voxels <-> half res + 1/32 voxels),
 ## F3 = pixel view on/off (off draws the same scene at full resolution),
+## T = toon (banded) lighting on/off, O = dark outlines and edge highlights on/off,
 ## R = reset the scene.
 ## Lives inside the world's SubViewport, so it gets the input PixelView forwards, and
 ## aims with ViewService (low-res mouse + world camera).
@@ -20,6 +21,10 @@ extends Node
 static var detail: int = 1
 ## False draws the world at full resolution, to compare. Survives the F3 reload.
 static var pixel_view: bool = true
+## False lights the world smoothly instead of in bands, to compare.
+static var toon_lighting: bool = true
+## False hides the dark outlines and edge highlights (selection lines stay).
+static var outlines: bool = true
 
 
 var _help: Label
@@ -30,6 +35,8 @@ var _readout_timer: float = 0.0
 
 func _ready() -> void:
 	_apply_detail()
+	# The camera isn't ready yet, and the outline setting lives on it.
+	_apply_look.call_deferred()
 
 
 ## Shows what the voxel work cost the main thread: the worst frame in the last half second.
@@ -64,6 +71,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif key.physical_keycode == KEY_F3:
 			pixel_view = not pixel_view
 			get_tree().reload_current_scene()
+		elif key.physical_keycode == KEY_T:
+			toon_lighting = not toon_lighting
+			_apply_look()
+		elif key.physical_keycode == KEY_O:
+			outlines = not outlines
+			_apply_look()
 
 
 ## Sets the render scale, camera zoom, voxel size and models for the detail level.
@@ -100,6 +113,18 @@ func _apply_detail() -> void:
 	_set_help_text()
 
 
+## Pushes the lighting and outline choices to the shaders.
+func _apply_look() -> void:
+	RenderingServer.global_shader_parameter_set(&"pixel_shading_smooth", not toon_lighting)
+	var camera: Camera3D = ViewService.get_camera()
+	var outline_pass: MeshInstance3D = camera.get_node_or_null("OutlinePass") as MeshInstance3D if camera else null
+	var outline_material: ShaderMaterial = outline_pass.material_overlay as ShaderMaterial if outline_pass else null
+	if outline_material:
+		outline_material.set_shader_parameter(&"outline_enabled", outlines)
+		outline_material.set_shader_parameter(&"highlight_enabled", outlines)
+	_set_help_text()
+
+
 func _bodies_under(node: Node) -> Array[VoxelBody]:
 	var found: Array[VoxelBody] = []
 	for child: Node in node.get_children():
@@ -117,7 +142,8 @@ func _set_help_text() -> void:
 		mode = ("Quarter res, " if detail == 1 else "Half res, ") + mode
 	else:
 		mode = "Pixel view off, " + mode
-	_help_text = "%s  -  Left click: select / deselect   Right click: move   A + right click: attack   Arrows: camera\nTest: Ctrl+click shell   Ctrl+Shift+click rifle   Ctrl+right click destroy   F2 detail   F3 pixel view   R reset" % mode
+	mode += ", toon lighting " + ("on" if toon_lighting else "off") + ", outlines " + ("on" if outlines else "off")
+	_help_text = "%s\nLeft click: select / deselect   Right click: move   A + right click: attack   Arrows: camera\nTest: Ctrl+click shell   Ctrl+Shift+click rifle   Ctrl+right click destroy   F2 detail   F3 pixel view   T toon lighting   O outlines   R reset" % mode
 	if _help:
 		_help.text = _help_text
 

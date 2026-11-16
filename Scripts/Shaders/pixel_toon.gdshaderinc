@@ -11,6 +11,7 @@
 global uniform int pixel_shading_bands;        // light levels, e.g. 3
 global uniform bool pixel_shading_use_ramp;    // colour the bands from the ramp?
 global uniform sampler2D pixel_shading_ramp;   // darkest band on the left, brightest on the right
+global uniform bool pixel_shading_smooth;      // ordinary smooth lighting instead of bands (for comparing)
 
 // Cloud shadows (CloudService drives these). Dims the sun only.
 global uniform sampler2D cloud_noise;
@@ -177,6 +178,9 @@ void light() {
 		lit *= cloud_shade(world_pos);
 	}
 
+	if (pixel_shading_smooth) {
+		DIFFUSE_LIGHT += lit * LIGHT_COLOR / PI;
+	} else {
 	// Hard steps. ceil keeps anything lit at all off the darkest band.
 	float bands = float(max(pixel_shading_bands, 1));
 	float stepped = ceil(lit * bands) / bands;
@@ -190,4 +194,5 @@ void light() {
 
 	// LIGHT_COLOR includes a factor of PI in Godot 4, so divide it back out.
 	DIFFUSE_LIGHT += tint * LIGHT_COLOR / PI;
+	}
 }

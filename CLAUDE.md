@@ -48,6 +48,9 @@ The Godot project is the repo root.
 - Decided 2026-11-16: the game uses the pixel view at quarter res with 1/16 voxels
   (16 ppu). The test scene can still show half res with 1/32 voxels (F2) and full
   resolution with no pixel view (F3), for comparison only.
+- Also for comparison in the test scene: T switches the banded lighting for smooth
+  lighting (`pixel_shading_smooth` shader global), O hides the dark outlines and edge
+  highlights. Whether the game keeps bands and outlines is undecided (2026-11-16).
 - `PixelSnapCamera` snaps to the low-res grid and hands the leftover sub-pixel to the
   display, so panning is smooth without crawling pixels. `CameraRig` pans/zooms in
   pixel-perfect steps (`zoom_levels` = low-res pixels per world unit).

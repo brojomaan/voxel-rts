@@ -129,3 +129,7 @@ pixel_shading_use_ramp={
 "type": "bool",
 "value": false
 }
+pixel_shading_smooth={
+"type": "bool",
+"value": false
+}
