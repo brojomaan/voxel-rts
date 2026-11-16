@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/Voxel/voxel_body.gd" id="1_body"]
+[ext_resource type="Material" path="res://Materials/voxel.tres" id="2_voxel"]
+
+[node name="SizeLineup" type="Node3D"]
+
+[node name="Rifleman12" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 0.000, 0, 0.000)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/rifleman_12.vox"
+material = ExtResource("2_voxel")
+
+[node name="Bazooka12" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 1.061, 0, 1.061)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/bazooka_12.vox"
+material = ExtResource("2_voxel")
+
+[node name="Dog12" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 2.121, 0, 2.121)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/dog_12.vox"
+material = ExtResource("2_voxel")
+
+[node name="Rifleman16" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 1.131, 0, -1.131)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/rifleman_16.vox"
+material = ExtResource("2_voxel")
+
+[node name="Bazooka16" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 2.192, 0, -0.071)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/bazooka_16.vox"
+material = ExtResource("2_voxel")
+
+[node name="Dog16" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 3.253, 0, 0.990)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/dog_16.vox"
+material = ExtResource("2_voxel")
+
+[node name="Rifleman20" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 2.263, 0, -2.263)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/rifleman_20.vox"
+material = ExtResource("2_voxel")
+
+[node name="Bazooka20" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 3.323, 0, -1.202)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/bazooka_20.vox"
+material = ExtResource("2_voxel")
+
+[node name="Dog20" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 4.384, 0, -0.141)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/dog_20.vox"
+material = ExtResource("2_voxel")
+
+[node name="Rifleman24" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 3.394, 0, -3.394)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/rifleman_24.vox"
+material = ExtResource("2_voxel")
+
+[node name="Bazooka24" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 4.455, 0, -2.333)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/bazooka_24.vox"
+material = ExtResource("2_voxel")
+
+[node name="Dog24" type="Node3D" parent="."]
+transform = Transform3D(-0.9397, 0, -0.342, 0, 1, 0, 0.342, 0, -0.9397, 5.515, 0, -1.273)
+script = ExtResource("1_body")
+vox_path = "res://Art/Voxel/Lineup/dog_24.vox"
+material = ExtResource("2_voxel")

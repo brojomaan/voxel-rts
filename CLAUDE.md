@@ -127,6 +127,10 @@ but the ground plane, a native (C#/C++) mesher if GDScript ever isn't enough.
   shader; values must match `outline.gdshader`). Needs Forward+, and no MSAA on the
   world viewport (it blends the marks).
 - Mark's idea for later, not built: tanks take more damage from behind.
+- Sizes come from the characters: everything else is scaled to whatever soldier
+  height Mark picks. `Scenes/size_lineup.tscn` (in the test world) shows placeholder
+  riflemen, bazooka soldiers and dogs at 12/16/20/24 voxels, from
+  `Tools/make_test_characters.py`. Remove it once the size is chosen.
 
 ## Testing (headless)
 
