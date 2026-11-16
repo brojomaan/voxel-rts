@@ -69,13 +69,24 @@ static func load_grid(path: String, model_index: int = 0) -> VoxelGrid:
 		var c: Color = palette[i]
 		if c.g < 0.05 and c.r > 0.25 and absf(c.r - c.b) < 0.02:
 			grid.team_shade[i] = c.r
+	# Filled through locals (same arrays, by reference): this loop runs once per voxel.
 	var data: PackedByteArray = models[model_index]
-	for v: int in data.size() / 4:
-		var x: int = data[v * 4]
-		var y: int = data[v * 4 + 1]
-		var z: int = data[v * 4 + 2]
-		var colour_index: int = data[v * 4 + 3]
+	var cells: PackedByteArray = grid.cells
+	var occ: PackedInt32Array = grid.occ
+	var gx: int = grid.size.x
+	var gy: int = grid.size.y
+	var words_x: int = grid.words_x
+	var flip: int = mv_size.y - 1
+	var size_ok: bool = true
+	for v: int in range(0, data.size(), 4):
+		var x: int = data[v]
+		if x >= gx or data[v + 1] > flip or data[v + 2] >= gy:
+			size_ok = false
+			continue
 		# MagicaVoxel (x, y, z) Z-up -> Godot (x, z, flipped y) Y-up.
-		var cell: Vector3i = Vector3i(x, z, mv_size.y - 1 - y)
-		grid.cells[grid.index_of(cell)] = colour_index
+		var row: int = data[v + 2] + gy * (flip - data[v + 1])
+		cells[x + gx * row] = data[v + 3]
+		occ[(x >> 4) + words_x * row] |= 1 << (x & 15)
+	if not size_ok:
+		push_warning("VoxReader: %s has voxels outside its own size; they were skipped" % path)
 	return grid

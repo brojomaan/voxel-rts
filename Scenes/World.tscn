@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://Scripts/Voxel/voxel_body.gd" id="4_body"]
 [ext_resource type="Script" path="res://Scripts/Voxel/voxel_debris.gd" id="5_debris"]
 [ext_resource type="Script" path="res://Scripts/Tools/voxel_test_gun.gd" id="6_gun"]
+[ext_resource type="Material" path="res://Materials/voxel_debris.tres" id="7_debris_mat"]
 
 [sub_resource type="Environment" id="Environment_day"]
 background_mode = 1
@@ -40,7 +41,7 @@ surface_material_override/0 = ExtResource("2_ground")
 
 [node name="VoxelDebris" type="MultiMeshInstance3D" parent="."]
 script = ExtResource("5_debris")
-material = ExtResource("3_voxel")
+material = ExtResource("7_debris_mat")
 
 [node name="TestProps" type="Node3D" parent="."]
 

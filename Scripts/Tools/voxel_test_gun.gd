@@ -20,8 +20,26 @@ extends Node
 static var detail: int = 1
 
 
+var _help: Label
+var _help_text: String = ""
+var _peak_msec: float = 0.0
+var _readout_timer: float = 0.0
+
+
 func _ready() -> void:
 	_apply_detail()
+
+
+## Shows what the voxel work cost the main thread: the worst frame in the last half second.
+func _process(delta: float) -> void:
+	_peak_msec = maxf(_peak_msec, VoxelService.last_frame_msec)
+	_readout_timer -= delta
+	if _readout_timer > 0.0 or _help == null:
+		return
+	_readout_timer = 0.5
+	_help.text = "%s\nVoxel edits on the main thread: peak %.2f ms a frame   In progress: %d   FPS: %d" % [
+		_help_text, _peak_msec, VoxelService.get_pending_count(), Engine.get_frames_per_second()]
+	_peak_msec = 0.0
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -70,17 +88,20 @@ func _apply_detail() -> void:
 			body.voxel_size = voxel_size
 			body.scorch_width *= detail
 			body.loose_debris_limit *= detail * detail * detail
-			if detail > 1:
-				body.vox_path = body.vox_path.get_basename() + "_hi.vox"
+			# Models without a double-detail version (e.g. hand-made ones) stay as they are.
+			var hi_path: String = body.vox_path.get_basename() + "_hi.vox"
+			if detail > 1 and FileAccess.file_exists(hi_path):
+				body.vox_path = hi_path
 	_set_help_text()
 
 
 func _set_help_text() -> void:
 	var game: Node = get_viewport().get_parent().get_parent() if get_viewport().get_parent() else null
-	var label: Label = game.get_node_or_null("TestHelp/Label") as Label if game else null
-	if label:
-		var mode: String = "quarter res, 1/16 voxels" if detail == 1 else "half res, 1/32 voxels"
-		label.text = "Voxel test (%s)  -  Left click: shell   Shift+click: rifle   Right click: destroy   F2: switch detail   R: reset" % mode
+	_help = game.get_node_or_null("TestHelp/Label") as Label if game else null
+	var mode: String = "quarter res, 1/16 voxels" if detail == 1 else "half res, 1/32 voxels"
+	_help_text = "Voxel test (%s)  -  Left click: shell   Shift+click: rifle   Right click: destroy   F2: switch detail   R: reset" % mode
+	if _help:
+		_help.text = _help_text
 
 
 ## Fires along the mouse ray at the nearest voxel body. radius in world units.

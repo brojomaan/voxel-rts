@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://Scripts/Shaders/voxel_debris.gdshader" id="1_debris"]
+
+[resource]
+shader = ExtResource("1_debris")
+shader_parameter/albedo = Color(1, 1, 1, 1)

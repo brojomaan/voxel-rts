@@ -53,31 +53,55 @@ The Godot project is the repo root.
 - **`ViewService`** (autoload): the world camera, mouse position in world-view pixels,
   and world-to-screen. Raycasts must use `ViewService.get_camera()` and
   `ViewService.get_mouse_position()`, not the root viewport's.
-- All 3D materials use `Scripts/Shaders/pixel_toon.gdshader` (banded lighting; band count
-  and ramp are project Shader Globals). Outlines are a full-screen pass on the camera
-  (`outline_shader.tres`); creases need Forward+, the browser build gets outlines only.
+- The look is `Scripts/Shaders/pixel_toon.gdshaderinc` (banded lighting; band count and
+  ramp are project Shader Globals). Three thin shaders include it: `pixel_toon.gdshader`
+  (ordinary models), `voxel_toon.gdshader` (voxel bodies) and `voxel_debris.gdshader`.
+  Change the look in the include, not in a variant. Outlines are a full-screen pass on
+  the camera (`outline_shader.tres`).
 - Basic team/ground materials are in `Materials/`.
 
-## Voxel plan (from the GDD)
+## Voxels
 
-- HP drives gameplay; voxels are visual only.
-- Build only exterior faces; one mesh per object (or per part: hull, turret).
-- Undamaged units of a type share a mesh; a unit gets its own voxel grid when first hit.
-- Remeshes are queued with a per-frame budget on `WorkerThreadPool`; debris is pooled
-  and capped.
-- Art is authored in MagicaVoxel (`.vox`, read at runtime by `VoxReader`). Export presets
-  must include `*.vox` under "Filters to export non-resource files" until there's an
-  import plugin.
-- Code: `Scripts/Voxel/` — `VoxelGrid` (data), `VoxReader`, `VoxelMesher` (exterior faces,
-  vertex colours), `VoxelBody` (shared mesh, raycast, carve, support check, crumble),
-  `VoxelDebris` (pooled MultiMesh). `Scripts/Tools/voxel_test_gun.gd` is a test harness.
-- Voxel materials need `use_vertex_color` on (`Materials/voxel.tres`).
+Rules (from the GDD):
+
+- HP drives gameplay; voxels are visual only. Nothing about them needs syncing.
+- Art is authored in MagicaVoxel (`.vox`, read at runtime by `VoxReader`; barrel/front
+  points +Y there). Export presets must include `*.vox` under "Filters to export
+  non-resource files" until there's an import plugin.
 - Team colour: magenta palette entries (FF00FF, CC00CC, 990099, 660066) are swapped for
   `VoxelBody.team_color` in the shader, so one model serves every team. The shared
-  palette is `Art/Voxel/palette.png` (load it in MagicaVoxel).
-- Damaged bodies are split into `section_size`³ sections and only touched sections are
-  rebuilt; the support check searches out from the crater, not the whole model.
-- Test models come from `Tools/make_test_vox.py` (placeholders until Mark's art).
+  palette is `Art/Voxel/palette.png`.
+- No browser build for this project (decided 2026-11-16), so threads and Forward+-only
+  features are fine.
+
+How it works (`Scripts/Voxel/`, `Scripts/Services/voxel_service.gd`):
+
+- `VoxelGrid`: `cells` (palette index), `shade` (scorch), `occ` (one bit per voxel, 16
+  per word). **Grid arrays are never written in place once in use** (packed arrays are
+  shared by reference, and worker threads read them); an edit makes new arrays and the
+  body swaps them in.
+- `VoxelMesher`: exterior faces only, one 16x16x16 section at a time, found with bit
+  masks on `occ`. Meshes are in voxel units; the body scales them.
+- `VoxelModel` (one per file, cached by `VoxelService`): the grid, one whole mesh, and
+  the same thing as section meshes. Built once at load, across the worker threads.
+- `VoxelBody`: draws the model's whole mesh until first hit, then sections. `carve()`
+  only queues the hit.
+- `VoxelEditJob`: runs on `WorkerThreadPool`. Copies the arrays, carves, finds anything
+  cut loose (search out from the crater, down first), meshes the sections that changed.
+  One job per body at a time. `VoxelService` hands results back on the main thread
+  under a small per-frame budget; the body swaps arrays and meshes, throws the debris
+  and spawns any falling chunk. Sections wholly inside a chunk keep their meshes.
+- Crumbling is the shader hiding everything above a falling height (`clip_height`, an
+  instance uniform). No meshing.
+- `VoxelDebris`: one MultiMesh; a piece's start, velocity and timing are packed into
+  its instance transform and the vertex shader works out the flight. No per-frame CPU.
+- Worker code must not touch nodes or the scene tree. Creating `ArrayMesh`es on workers
+  is fine with a real renderer; with `--headless` no meshes are made at all.
+- `Scripts/Tools/voxel_test_gun.gd` is the test harness (click to shoot, F2 detail,
+  on-screen main-thread cost). Test models come from `Tools/make_test_vox.py`.
+
+Not done yet: greedy meshing, an import plugin for `.vox`, debris bouncing on anything
+but the ground plane, a native (C#/C++) mesher if GDScript ever isn't enough.
 
 ## Testing (headless)
 
@@ -102,3 +126,6 @@ xvfb-run -a -s "-screen 0 1920x1080x24" /tmp/godot/Godot_v4.7.1-stable_linux.x86
   --rendering-method forward_plus` instead of `--rendering-driver opengl3`. It's slower
   per frame. opengl3 gives the Compatibility (browser) look, brighter and more saturated.
 - Look at screenshots before saying visual work is done.
+- `--headless` has no renderer, so voxel bodies have no meshes there: fine for timing
+  the main thread, useless for checking meshes. For those, run on lavapipe and compare
+  each drawn section with a fresh `VoxelMesher.build_section` of the body's grid.
