@@ -1,32 +1,33 @@
 [gd_scene format=3 uid="uid://d3pfbrw4t1dhl"]
 
-[ext_resource type="Script" path="res://Scripts/Camera/pixel_view.gd" id="1_80nbo"]
+[ext_resource type="Script" uid="uid://dqoaevsyvd5cb" path="res://Scripts/Camera/pixel_view.gd" id="1_80nbo"]
 [ext_resource type="PackedScene" uid="uid://cb5kack5iypkp" path="res://Scenes/World.tscn" id="2_e2o6t"]
 
-[node name="Game" type="Node"]
+[node name="Game" type="Node" unique_id=672913130]
 
-[node name="PixelView" type="Node" parent="." node_paths=PackedStringArray("sub_viewport", "display")]
+[node name="PixelView" type="Node" parent="." unique_id=1840480705 node_paths=PackedStringArray("sub_viewport", "display")]
 script = ExtResource("1_80nbo")
 sub_viewport = NodePath("SubViewport")
 display = NodePath("Display")
+pixel_scale = 1
 web_brightness = 1.2
 web_saturation = 1.0
 
-[node name="SubViewport" type="SubViewport" parent="PixelView"]
+[node name="SubViewport" type="SubViewport" parent="PixelView" unique_id=1805144164]
 render_target_update_mode = 4
 
-[node name="World" parent="PixelView/SubViewport" instance=ExtResource("2_e2o6t")]
+[node name="World" parent="PixelView/SubViewport" unique_id=120206771 instance=ExtResource("2_e2o6t")]
 
-[node name="Display" type="TextureRect" parent="PixelView"]
+[node name="Display" type="TextureRect" parent="PixelView" unique_id=1385195194]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TestHelp" type="CanvasLayer" parent="."]
+[node name="TestHelp" type="CanvasLayer" parent="." unique_id=814439759]
 
-[node name="Label" type="Label" parent="TestHelp"]
+[node name="Label" type="Label" parent="TestHelp" unique_id=671540308]
 offset_left = 16.0
 offset_top = 12.0
 offset_right = 1800.0

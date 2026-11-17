@@ -1,7 +1,12 @@
-[gd_resource type="ShaderMaterial" format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://cn34srnmwehl5"]
 
-[ext_resource type="Shader" path="res://Scripts/Shaders/voxel_toon.gdshader" id="1_voxel"]
+[ext_resource type="Shader" uid="uid://bmfv2lni6t35t" path="res://Scripts/Shaders/voxel_toon.gdshader" id="1_voxel"]
 
 [resource]
+render_priority = 0
 shader = ExtResource("1_voxel")
 shader_parameter/albedo = Color(1, 1, 1, 1)
+shader_parameter/team_color = Color(1, 0, 1, 1)
+shader_parameter/emission = Color(0, 0, 0, 1)
+shader_parameter/emission_energy = 1.0
+shader_parameter/emission_uses_albedo = false
